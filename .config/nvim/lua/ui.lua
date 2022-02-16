@@ -5,12 +5,17 @@ local opt = vim.opt
 
 
 local function setup()
-    opt.background = 'dark'
-    require('onedarkpro').load()
+    -- opt.background = 'dark'
+    -- require('onedarkpro').load()
+    opt.termguicolors = true
+    require('lighthaus').setup({
+        bg_dark = true,
+    })
 
     require('lualine').setup{
         options = {
-            theme = 'auto',
+            -- theme = 'auto',
+            theme = 'lighthaus_dark',
             icons_enabled = false,
             component_separators = { left = '|', right = '|' },
             section_separators = { left = '', right = '' }
@@ -26,7 +31,8 @@ local function setup()
         options = {
             show_devicons = false,
             show_bufnr = true,
-            component_separators = {'', ''}
+            component_separators = {'', ''},
+            modified_icon = "+ ",
         }
     }
 

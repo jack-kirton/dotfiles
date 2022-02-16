@@ -16,6 +16,7 @@ return require('packer').startup(function(use)
     use 'wbthomason/packer.nvim'            -- Plugin manager
 
     use 'olimorris/onedarkpro.nvim'         -- Colorscheme
+    use 'mrjones2014/lighthaus.nvim'
 
     use {'nvim-telescope/telescope.nvim',   -- Fuzzy finder for everything
         requires = {{'nvim-lua/plenary.nvim'},
