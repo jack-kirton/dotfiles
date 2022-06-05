@@ -35,7 +35,7 @@ return require('packer').startup(function(use)
     use 'nvim-lualine/lualine.nvim'         -- Status line
     use 'kdheepak/tabline.nvim'             -- Buffer/tab line
 
-    use 'chentau/marks.nvim'                -- Better support for marks
+    use 'chentoast/marks.nvim'              -- Better support for marks
 
     use 'mbbill/undotree'                   -- Visual undo tree
 
