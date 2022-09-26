@@ -17,10 +17,10 @@ local function setup()
     -- TODO pastetoggle isn't working
     opt.pastetoggle=t'<F12>'  -- TODO Is this a good button?
     opt.autoindent = true
-    opt.shiftwidth = 4
+    opt.shiftwidth = 2
     opt.expandtab = true
-    opt.tabstop = 4
-    opt.softtabstop=4
+    opt.tabstop = 2
+    opt.softtabstop = 2
 
     opt.modeline = true
 
