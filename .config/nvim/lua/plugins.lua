@@ -10,6 +10,10 @@ if fn.empty(fn.glob(install_path)) > 0 then
   packer_bootstrap = fn.system({'git', 'clone', '--depth', '1', 'https://github.com/wbthomason/packer.nvim', install_path})
 end
 
+-- Automatically set up your configuration after cloning packer.nvim
+if packer_bootstrap then
+  require('packer').sync()
+end
 
 -- TODO Why is this returned?
 return require('packer').startup(function(use)
@@ -25,8 +29,6 @@ return require('packer').startup(function(use)
 
     use 'nvim-treesitter/nvim-treesitter'   -- Better syntax processing
 
-    -- TODO Is polyglot needed? Treesitter probably handles most of it
-    -- use 'sheerun/vim-polyglot'           -- Better support for many languages
     use 'tpope/vim-eunuch'                  -- Linux file commands
     use 'tpope/vim-repeat'                  -- Repeat ('.' command) support for many plugins
     use 'numToStr/Comment.nvim'             -- Commenting
@@ -45,10 +47,9 @@ return require('packer').startup(function(use)
     use 'kyazdani42/nvim-tree.lua'          -- Visual project file tree
     use 'lewis6991/spellsitter.nvim'        -- Spell checking in treesitter-enabled buffers
 
+    use 'williamboman/mason.nvim'           -- Easy install of LSPs
+    use 'williamboman/mason-lspconfig.nvim' -- Easy install of LSPs
     use 'neovim/nvim-lspconfig'             -- Basic configs for LSPs
-    use 'williamboman/nvim-lsp-installer'   -- Easy install of LSPs
-
-    use 'github/copilot.vim'                -- Github Copilot
 
     use 'akinsho/toggleterm.nvim'           -- Better persistent terminal support (also for a git TUI)
 
@@ -57,9 +58,4 @@ return require('packer').startup(function(use)
     use {'lewis6991/gitsigns.nvim',         -- Git signs in gutter and git operations
         requires = {'nvim-lua/plenary.nvim'},
     }
-
-  -- Automatically set up your configuration after cloning packer.nvim
-  if packer_bootstrap then
-    require('packer').sync()
-  end
 end)
