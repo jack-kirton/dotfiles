@@ -1,0 +1,10 @@
+#!/bin/bash
+
+source $BOOTSTRAP_DIR/util.sh
+
+if cmd_exists nvim; then
+  # Install plugins (plugin manager should install itself on first open)
+  nvim '+PackerUpdate' '+PackerClean' '+PackerInstall' '+qall'
+  # Install languages servers and the like
+  nvim '+MasonInstall bash-language-server clangd python-lsp-server isort rust-analyzer texlab' '+qall'
+fi

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+source $BOOTSTRAP_DIR/util.sh
+
+mkdir -p ~/.ssh
+mkdir -p ~/.ssh/config.d
+mkdir -p ~/.ssh/keys
+
+if [ ! -f "${HOME}/.ssh/keys/${HOSTNAME}-github" ]; then
+  ssh-keygen -q -t ed25519 -f "${HOME}/.ssh/keys/${HOSTNAME}-github" -N ""
+fi

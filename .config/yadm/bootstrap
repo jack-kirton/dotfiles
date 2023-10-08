@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -e
+
+export BOOTSTRAP_DIR="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
+
+source $BOOTSTRAP_DIR/util.sh
+
+cd "${HOME}"
+
+
+#### Update YADM ####
+if cmd_exists yadm; then
+  yadm submodule update --recursive --init  # Add submodules if there are any
+  yadm remote set-url origin "git@github.com:jack-kirton/dotfiles.git"  # Change to SSH URL
+fi
+
+
+#### Setup home directories ####
+mkdir -p ~/devel  # For active development
+mkdir -p ~/opt    # For applications that are built from source
+
+
+#### Run modular bootstrap scripts
+for script in $BOOTSTRAP_DIR/bootstrap.d/*; do
+  while true; do
+    read -p "YADM :: Run '$(basename "$script")'? (Y/n) " response
+    case "$response" in
+      "" | "yes" | "YES" | "y" | "Y")
+        $script
+        break;;
+      "no" | "NO" | "n" | "N")
+        break;;
+      * ) echo "Invalid response"
+    esac
+  done
+done
+
+
+#### Bootstrap script numbering ####
+# 00: Requirements for package installation
+# 10: Package installation
+# 30: Core user setup
+# 70: Development language and environment setup
+# 80: Applications (and DE mods? like setting MATE shortcuts? and MATE panel layout?)

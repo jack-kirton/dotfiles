@@ -1,0 +1,18 @@
+#!/bin/bash
+
+source $BOOTSTRAP_DIR/util.sh
+
+#### Install packages ####
+if [ "x$os" = "xManjaroLinux" ]; then
+  basic_packages="git curl wget zsh vim openssh python python-pip python-pipx neovim make patch tar rustup gzip unzip cmake npm"
+  extra_packages="brave-browser bitwarden gitui"
+  if [ $feat_bt ]; then
+    basic_packages="$basic_packages bluez bluez-plugins bluez-tools bluez-utils"
+  fi
+  sudo pacman -Syu --noconfirm
+  sudo pacman -S --noconfirm $basic_packages
+  sudo pacman -S --noconfirm $extra_packages
+else
+  echo "Unknown distribution '$os', not installing any packages" >&2
+  exit 1
+fi

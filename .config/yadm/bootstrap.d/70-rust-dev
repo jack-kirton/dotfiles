@@ -1,0 +1,7 @@
+#!/bin/bash
+
+source $BOOTSTRAP_DIR/util.sh
+
+if ! cmd_exists rustup; then
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+fi

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+source $BOOTSTRAP_DIR/util.sh
+
+# Install Poetry
+curl -sSL https://install.python-poetry.org | python3 -
