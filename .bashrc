@@ -30,7 +30,7 @@ export HISTCONTROL=erasedups:ignoredups:ignorespace
 
 #### Useful functions ####
 
-colors() {
+function colors() {
   local fgc bgc vals seq0
 
   printf "Color escapes are %s\n" '\e[${value};...;${value}m'
@@ -57,15 +57,85 @@ colors() {
   done
 }
 
+
+#### Prompt functions ####
+
+function prompt_symbol() {
+  if [ ${EUID} -eq 0 ]; then
+    echo '#'
+  else
+    echo '$'
+  fi
+}
+
+function prompt_err_code() {
+  if [ $PROMPT_ERR -ne 0 ]; then
+    printf " $PROMPT_ERR "
+  fi
+}
+
+# get current branch in git repo
+function prompt_git() {
+  BRANCH="$(git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/')"
+  if [ ! "${BRANCH}" == "" ]
+  then
+    STAT="$(_prompt_git_dirty)"
+    echo " (${BRANCH}${STAT})"
+  else
+    echo ""
+  fi
+}
+
+# get current status of git repo
+function _prompt_git_dirty {
+  status=`git status 2>&1 | tee`
+  dirty=`echo -n "${status}" 2> /dev/null | grep "modified:" &> /dev/null; echo "$?"`
+  untracked=`echo -n "${status}" 2> /dev/null | grep "Untracked files" &> /dev/null; echo "$?"`
+  ahead=`echo -n "${status}" 2> /dev/null | grep "Your branch is ahead of" &> /dev/null; echo "$?"`
+  newfile=`echo -n "${status}" 2> /dev/null | grep "new file:" &> /dev/null; echo "$?"`
+  renamed=`echo -n "${status}" 2> /dev/null | grep "renamed:" &> /dev/null; echo "$?"`
+  deleted=`echo -n "${status}" 2> /dev/null | grep "deleted:" &> /dev/null; echo "$?"`
+  bits=''
+  if [ "${ahead}" == "0" ]; then
+    bits="*${bits}"
+  fi
+  if [ "${newfile}" == "0" ]; then
+    bits="+${bits}"
+  fi
+  if [ "${untracked}" == "0" ]; then
+    bits="?${bits}"
+  fi
+  if [ "${deleted}" == "0" ]; then
+    bits="x${bits}"
+  fi
+  if [ "${dirty}" == "0" ]; then
+    bits="~${bits}"
+  fi
+  if [ "${renamed}" == "0" ]; then
+    bits=">${bits}"
+  fi
+  if [ ! "${bits}" == "" ]; then
+    echo " ${bits}"
+  else
+    echo ""
+  fi
+}
+
+
 [ -r /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion
+
+# Store previous error for displaying on prompt
+PROMPT_COMMAND='PROMPT_ERR=$?'
 
 # Change the window title of X terminals
 case ${TERM} in
   xterm*|rxvt*|Eterm*|aterm|kterm|gnome*|interix|konsole*)
-    PROMPT_COMMAND='echo -ne "\033]0;${USER}@${HOSTNAME%%.*}:${PWD/#$HOME/\~}\007"'
+    cmd='echo -ne "\033]0;${USER}@${HOSTNAME%%.*}:${PWD/#$HOME/\~}\007"'
+    PROMPT_COMMAND="$PROMPT_COMMAND; $cmd"
     ;;
   screen*)
-    PROMPT_COMMAND='echo -ne "\033_${USER}@${HOSTNAME%%.*}:${PWD/#$HOME/\~}\033\\"'
+    cmd='echo -ne "\033_${USER}@${HOSTNAME%%.*}:${PWD/#$HOME/\~}\033\\"'
+    PROMPT_COMMAND="$PROMPT_COMMAND; $cmd"
     ;;
 esac
 
@@ -95,23 +165,37 @@ if ${use_color} ; then
     fi
   fi
 
-  if [[ ${EUID} == 0 ]] ; then
-    PS1='\[\033[01;31m\][\h\[\033[01;36m\] \W\[\033[01;31m\]]\$\[\033[00m\] '
+
+  # Prompt formatting commands
+  rst='\[\033[00m\]'
+
+  # Change main color when running with root permissions
+  if [ ${EUID} -eq 0 ]; then
+    main_clr='\[\033[31m\]'
   else
-    PS1='\[\033[01;32m\][\u@\h\[\033[01;37m\] \W\[\033[01;32m\]]\$\[\033[00m\] '
+    main_clr='\[\033[32m\]'
   fi
+
+  main_clr="$rst$main_clr"
+  dir_clr='\[\033[37m\]'
+  dir_clr="$rst$dir_clr"
+  err_clr='\[\033[31m\]'
+  err_clr="$rst$err_clr"
+  git_clr='\[\033[36m\]'
+  git_clr="$rst$git_clr"
+
+  # PS1="$clr" '[\u@\h\[\033[01;37m\] \W\[\033[01;30m\]$(prompt_git)\[\033[01;31m\]\[\033[01;32m\]]\[\033[01;31m\]$(prompt_err_code)\[\033[01;32m\]$(prompt_symbol)\[\033[00m\] '
+
+  PS1="${main_clr}[\\u@\\h ${dir_clr}\\W${git_clr}\$(prompt_git)${main_clr}]${err_clr}\$(prompt_err_code)${main_clr}\$(prompt_symbol) $rst"
+
+  unset rst main_clr dir_clr err_clr git_clr
 
   alias ls='ls --color=auto'
   alias grep='grep --colour=auto'
   alias egrep='egrep --colour=auto'
   alias fgrep='fgrep --colour=auto'
 else
-  if [[ ${EUID} == 0 ]] ; then
-    # show root@ when we don't have colors
-    PS1='\u@\h \W \$ '
-  else
-    PS1='\u@\h \w \$ '
-  fi
+  PS1='[\u@\h \w$(prompt_git)]$(prompt_err_code)$(prompt_symbol) '
 fi
 
 unset use_color safe_term match_lhs sh
