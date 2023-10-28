@@ -1,9 +1,26 @@
 
 local function setup()
-    local mason = require('mason')
-    mason.setup()
     --- @diagnostic disable-next-line: undefined-global
     local vim = vim  -- This is just to disable undefined-global warning on every vim.* usage
+
+    local mason = require('mason')
+    mason.setup()
+    local mason_config = require("mason-lspconfig")
+    mason_config.setup()
+
+    mason_config.setup_handlers{
+      -- Default server setup
+      function(server_name)
+        require("lspconfig")[server_name].setup{}
+      end,
+      -- Setup handlers for specific
+      -- ["rust_analyzer"] = function ()
+      --    require("lspconfig")["rust_analyzer"].setup{}
+      --    require("rust-tools").setup{}
+      -- end,
+    }
+
+
     --- @diagnostic disable-next-line: undefined-global
     vim.bo.omnifunc = 'v:lua.vim.lsp.omnifunc'
 
