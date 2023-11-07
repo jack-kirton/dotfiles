@@ -23,9 +23,14 @@ export HISTSIZE=500
 # Don't put duplicate lines in the history and do not add lines that start with a space
 export HISTCONTROL=erasedups:ignoredups:ignorespace
 
+# Shell options
+shopt -s extglob
+shopt -s globstar
 
 #### Stop non-interactive sessions here ####
 [[ $- != *i* ]] && return
+
+[ -r /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion
 
 
 #### Useful functions ####
@@ -68,6 +73,14 @@ function prompt_symbol() {
   fi
 }
 
+function prompt_host() {
+  if [ ! -z "$SSH_CONNECTION" ]; then
+    echo "${USER}@${HOSTNAME} "
+  elif [ ${EUID} -eq 0 ]; then
+    echo "${USER} "
+  fi
+}
+
 function prompt_err_code() {
   if [ $PROMPT_ERR -ne 0 ]; then
     printf " $PROMPT_ERR "
@@ -77,8 +90,10 @@ function prompt_err_code() {
 # get current branch in git repo
 function prompt_git() {
   BRANCH="$(git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/')"
-  if [ ! "${BRANCH}" == "" ]
-  then
+  if [ "${BRANCH}" == "(no branch)" ]; then
+    BRANCH="$(git rev-parse --short HEAD)"
+  fi
+  if [ ! "${BRANCH}" == "" ]; then
     STAT="$(_prompt_git_dirty)"
     echo " (${BRANCH}${STAT})"
   else
@@ -121,11 +136,17 @@ function _prompt_git_dirty {
   fi
 }
 
-
-[ -r /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion
+function prompt_venv {
+  if [ "$VIRTUAL_ENV" != "" ]; then
+    echo " (venv)"
+  fi
+}
 
 # Store previous error for displaying on prompt
 PROMPT_COMMAND='PROMPT_ERR=$?'
+
+# Disable Python venv prompt so we can use a custom one
+VIRTUAL_ENV_DISABLE_PROMPT=1
 
 # Change the window title of X terminals
 case ${TERM} in
@@ -165,6 +186,10 @@ if ${use_color} ; then
     fi
   fi
 
+  alias ls='ls --color=auto'
+  alias grep='grep --colour=auto'
+  alias egrep='egrep --colour=auto'
+  alias fgrep='fgrep --colour=auto'
 
   # Prompt formatting commands
   rst='\[\033[00m\]'
@@ -177,27 +202,29 @@ if ${use_color} ; then
   fi
 
   main_clr="$rst$main_clr"
+  host_clr='\[\033[33m\]'
+  host_clr="$rst$host_clr"
   dir_clr='\[\033[37m\]'
   dir_clr="$rst$dir_clr"
   err_clr='\[\033[31m\]'
   err_clr="$rst$err_clr"
   git_clr='\[\033[36m\]'
   git_clr="$rst$git_clr"
-
-  # PS1="$clr" '[\u@\h\[\033[01;37m\] \W\[\033[01;30m\]$(prompt_git)\[\033[01;31m\]\[\033[01;32m\]]\[\033[01;31m\]$(prompt_err_code)\[\033[01;32m\]$(prompt_symbol)\[\033[00m\] '
-
-  PS1="${main_clr}[\\u@\\h ${dir_clr}\\W${git_clr}\$(prompt_git)${main_clr}]${err_clr}\$(prompt_err_code)${main_clr}\$(prompt_symbol) $rst"
-
-  unset rst main_clr dir_clr err_clr git_clr
-
-  alias ls='ls --color=auto'
-  alias grep='grep --colour=auto'
-  alias egrep='egrep --colour=auto'
-  alias fgrep='fgrep --colour=auto'
+  venv_clr='\[\033[33m\]'
+  venv_clr="$rst$venv_clr"
 else
-  PS1='[\u@\h \w$(prompt_git)]$(prompt_err_code)$(prompt_symbol) '
+  main_clr=""
+  host_clr=""
+  dir_clr=""
+  err_clr=""
+  git_clr=""
+  venv_clr=""
 fi
 
+PS1="${main_clr}[${host_clr}\$(prompt_host)${dir_clr}\\W${venv_clr}\$(prompt_venv)${git_clr}\$(prompt_git)${main_clr}]${err_clr}\$(prompt_err_code)${main_clr}\$(prompt_symbol) $rst"
+PS2="${main_clr}> ${rst}"
+
+unset rst main_clr host_clr dir_clr err_clr git_clr venv_clr
 unset use_color safe_term match_lhs sh
 
 
