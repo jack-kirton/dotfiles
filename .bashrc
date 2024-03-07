@@ -16,6 +16,9 @@ fi
 # Ensure locals are in the PATH
 export PATH="~/.local/bin:/usr/local/bin:$PATH"
 
+# If Rust is installed, add Cargo install directory to PATH
+if which cargo &>/dev/null && [ -d ~/.cargo/bin ]; then export PATH="~/.cargo/bin:$PATH"; fi
+
 # Expand the history size
 export HISTFILESIZE=10000
 export HISTSIZE=500
@@ -243,5 +246,5 @@ shopt -s histappend
 #### Aliases ####
 
 if which nvim &>/dev/null; then alias vim='nvim'; fi
-
+if which nproc &>/dev/null; then alias make="make -j$(nproc)"; fi  # Automatically run make with available core count jobs
 
